@@ -220,6 +220,7 @@ Master结构体的定义举例：
 	}
 	return nil
 }
+
 # 3.高可用
 ## 3.1worker宕机
 master定期ping每个worker。如果在一定时间内没有收到来自worker的响应，则master将该worker标记为失败。工作线程完成的任何maptask都被重置回其初始空闲状态，因此可以在其他工作线程上调度。在失败的worker上正在进行的任何map任务或reducetask也被重置为空闲，并有资格重新调度。
