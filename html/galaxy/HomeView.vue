@@ -41,7 +41,7 @@
             size="100px"
             class="custom-drawer"
             :with-header="false">
-          <el-link style="margin-top:10px; width: 100px;height: 100px" href="https://github.com/zhangzhiwei01"
+          <el-link style="margin-top:10px; width: 100px;height: 100px" href="https://github.com/2549141519"
                    target="_blank"
                    :underline="false">
             <img src="@/assets/github.png"

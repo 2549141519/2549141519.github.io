@@ -49,7 +49,7 @@
         </div>
       </div>
     </el-main>
-    <el-footer class="home_footer">Copyright © 2023 Peter Cheung 保留所有权利</el-footer>
+
   </el-container>
 </template>
 
@@ -79,11 +79,11 @@ export default {
       this.isHovered = isHovered;
     },
     getLink(item) {
-      return `https://zhangzhiwei01.github.io/blog/${item}`;
+      return `https://2549141519.github.io/blog/${item}`;
     },
     async fetchTocData() {
       try {
-        const response = await fetch('https://zhangzhiwei01.github.io/blog/toc.json');
+        const response = await fetch('https://2549141519.github.io/blog/toc.json');
         const jsonData = await response.json();
 
         // 对jsonData进行排序

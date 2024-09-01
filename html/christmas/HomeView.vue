@@ -21,7 +21,7 @@
             size="100px"
             class="custom-drawer"
             :with-header="false">
-          <el-link style="margin-top:10px; width: 100px;height: 100px" href="https://github.com/zhangzhiwei01"
+          <el-link style="margin-top:10px; width: 100px;height: 100px" href="https://github.com/2549141519"
                    target="_blank"
                    :underline="false">
             <img src="@/assets/github.png"
@@ -103,9 +103,7 @@
           </el-link>
         </el-drawer>
       </el-main>
-      <el-footer class="home_footer">
-        Copyright © 2023 Peter Cheung 保留所有权利
-      </el-footer>
+
     </el-container>
   </div>
 </template>
