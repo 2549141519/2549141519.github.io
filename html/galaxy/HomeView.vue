@@ -123,9 +123,7 @@
           </el-link>
         </el-drawer>
       </el-main>
-      <el-footer class="home_footer">
-        Copyright © 2023 Peter Cheung 保留所有权利
-      </el-footer>
+
     </el-container>
   </div>
 </template>
