@@ -1,3 +1,8 @@
+点击返回[🔗我的博客文章目录](https://2549141519.github.io/#/toc)
+* 目录
+{:toc}
+<div onclick="window.scrollTo({top:0,behavior:'smooth'});" style="background-color:white;position:fixed;bottom:20px;right:40px;padding:10px 10px 5px 10px;cursor:pointer;z-index:10;border-radius:13%;box-shadow:0.5px 3px 7px rgba(0,0,0,0.3);"><img src="https://2549141519.github.io/blogImg/backTop.png" alt="TOP" style="background-color:white;width:30px;"></div>
+
 paper [link](https://static.googleusercontent.com/media/research.google.com/en//archive/mapreduce-osdi04.pdf)
 # 1.介绍
 MapReduce 是一种用于处理和生成大规模数据集的编程模型。它将数据处理分为两个主要阶段：Map 和 Reduce，从而实现对大数据的并行计算和分布式处理。MapReduce的设计目标是能够在计算机集群上高效处理TB级甚至PB级的数据集。
