@@ -10,111 +10,111 @@ MapReduce 是一种用于处理和生成大规模数据集的编程模型。它�
 例如大型文档集合中每个单词出现次数的问题，我们可以使用MapReduce处理，下文将默认处理该问题。
 ## 2.1Example
 伪代码：
->map(String key, String value):
-// key: document name
-// value: document contents
-for each word w in value:
-EmitIntermediate(w, "1");
-reduce(String key, Iterator values):
-// key: a word
-// values: a list of counts
-int result = 0;
-for each v in values:
-result += ParseInt(v);
-Emit(AsString(result));
+>map(String key, String value):  
+// key: document name  
+// value: document contents  
+for each word w in value:  
+EmitIntermediate(w, "1");  
+reduce(String key, Iterator values):  
+// key: a word  
+// values: a list of counts  
+int result = 0;  
+for each v in values:  
+result += ParseInt(v);  
+Emit(AsString(result));  
 
 map函数发出每个单词加上一个相关的出现次数计数(在这个简单的示例中只有' 1 ')。reduce函数将针对特定单词发出的所有计数求和。
 mapTask函数具体实现：
->func mapTask(mapf func(string, string) []KeyValue, file string, mapID int, nReduce int) (map[string][]KeyValue, error) {
-	// 读取文件内容
-	content, err := os.ReadFile(file)
-	if err != nil {
-		return nil, fmt.Errorf("cannot read file %v: %v", file, err)
-	}
-	// 调用用户提供的 map 函数生成键值对
-	kvs := mapf(file, string(content))
-	// 初始化中间数据
-	intermediateData := make(map[string][]KeyValue)
-	// 初始化中间文件和编码器
-	intermediateFiles := make([]*os.File, nReduce)
-	encoders := make([]*json.Encoder, nReduce)
-	for i := 0; i < nReduce; i++ {
-		intermediateFileName := fmt.Sprintf("mr-%d-%d", mapID, i)
-		intermediateFile, err := os.Create(intermediateFileName)
-		if err != nil {
-			log.Printf("Worker: Cannot create intermediate file %s: %v", intermediateFileName, err)
-			return nil, fmt.Errorf("cannot create intermediate file %s: %v", intermediateFileName, err)
-		}
-		defer intermediateFile.Close()
-		intermediateFiles[i] = intermediateFile
-		encoders[i] = json.NewEncoder(intermediateFile)
-	}
-	// 对每个键值对进行哈希，根据哈希值决定写入哪个Reduce任务的中间文件
-	for _, kv := range kvs {
-		reduceTask := ihash(kv.Key) % nReduce
-		if err := encoders[reduceTask].Encode(&kv); err != nil {
-			log.Printf("Worker: Cannot encode intermediate data for reduce task %d: %v", reduceTask, err)
-			return nil, fmt.Errorf("cannot encode intermediate data for reduce task %d: %v", reduceTask, err)
-		}
-		intermediateData[fmt.Sprintf("mr-%d-%d", mapID, reduceTask)] = append(intermediateData[fmt.Sprintf("mr-%d-%d", mapID, reduceTask)], kv)
-	}
-	return intermediateData, nil
-}
+>func mapTask(mapf func(string, string) []KeyValue, file string, mapID int, nReduce int) (map[string][]KeyValue, error) {  
+	// 读取文件内容  
+	content, err := os.ReadFile(file)  
+	if err != nil {  
+		return nil, fmt.Errorf("cannot read file %v: %v", file, err)  
+	}  
+	// 调用用户提供的 map 函数生成键值对  
+	kvs := mapf(file, string(content))  
+	// 初始化中间数据  
+	intermediateData := make(map[string][]KeyValue)  
+	// 初始化中间文件和编码器  
+	intermediateFiles := make([]*os.File, nReduce)  
+	encoders := make([]*json.Encoder, nReduce)  
+	for i := 0; i < nReduce; i++ {  
+		intermediateFileName := fmt.Sprintf("mr-%d-%d", mapID, i)  
+		intermediateFile, err := os.Create(intermediateFileName)  
+		if err != nil {  
+			log.Printf("Worker: Cannot create intermediate file %s: %v", intermediateFileName, err)  
+			return nil, fmt.Errorf("cannot create intermediate file %s: %v", intermediateFileName, err)  
+		}  
+		defer intermediateFile.Close()  
+		intermediateFiles[i] = intermediateFile  
+		encoders[i] = json.NewEncoder(intermediateFile)  
+	}  
+	// 对每个键值对进行哈希，根据哈希值决定写入哪个Reduce任务的中间文件  
+	for _, kv := range kvs {  
+		reduceTask := ihash(kv.Key) % nReduce  
+		if err := encoders[reduceTask].Encode(&kv); err != nil {  
+			log.Printf("Worker: Cannot encode intermediate data for reduce task %d: %v", reduceTask, err)  
+			return nil, fmt.Errorf("cannot encode intermediate data for reduce task %d: %v", reduceTask, err)  
+		}  
+		intermediateData[fmt.Sprintf("mr-%d-%d", mapID, reduceTask)] = append(intermediateData[fmt.Sprintf("mr-%d-%d", mapID, reduceTask)], kv)  
+	}  
+	return intermediateData, nil  
+}  
 
 reduceTask函数具体实现：
->func reduceTask(reducef func(string, []string) string, reduceID int, nMap int) error {
-	intermediate := []KeyValue{}
-	// 读取所有中间文件并解析键值对
-	for i := 0; i < nMap; i++ {
-		intermediateFileName := fmt.Sprintf("mr-%d-%d", i, reduceID)
-		file, err := os.Open(intermediateFileName)
-		if err != nil {
-			return fmt.Errorf("cannot open intermediate file %s: %v", intermediateFileName, err)
-		}
-		dec := json.NewDecoder(file)
-		for {
-			var kv KeyValue
-			if err := dec.Decode(&kv); err != nil {
-				if err.Error() == "EOF" {
-					break
-				}
-				return fmt.Errorf("error decoding intermediate file %s: %v", intermediateFileName, err)
-			}
-			intermediate = append(intermediate, kv)
-		}
-		defer file.Close() // 确保在每次读取文件后关闭文件
-	}
-	// 按键排序
-	sort.Slice(intermediate, func(i, j int) bool {
-		return intermediate[i].Key < intermediate[j].Key
-	})
-	// 创建输出文件
-	outputFileName := fmt.Sprintf("mr-out-%d", reduceID)
-	ofile, err := os.Create(outputFileName)
-	if err != nil {
-		return fmt.Errorf("cannot create output file %s: %v", outputFileName, err)
-	}
-	defer ofile.Close()
-	// Reduce阶段，按键合并相同的键，并调用用户定义的Reduce函数
-	i := 0
-	for i < len(intermediate) {
-		j := i + 1
-		// 找出所有具有相同键的值
-		for j < len(intermediate) && intermediate[j].Key == intermediate[i].Key {
-			j++
-		}
-		values := []string{}
-		for k := i; k < j; k++ {
-			values = append(values, intermediate[k].Value)
-		}
-		// 调用用户提供的Reduce函数处理值
-		output := reducef(intermediate[i].Key, values)
-		// 按指定格式输出结果
-		fmt.Fprintf(ofile, "%v %v\n", intermediate[i].Key, output)
-		i = j
-	}
-	return nil
-}
+>func reduceTask(reducef func(string, []string) string, reduceID int, nMap int) error {  
+	intermediate := []KeyValue{}  
+	// 读取所有中间文件并解析键值对  
+	for i := 0; i < nMap; i++ {  
+		intermediateFileName := fmt.Sprintf("mr-%d-%d", i, reduceID)  
+		file, err := os.Open(intermediateFileName)  
+		if err != nil {  
+			return fmt.Errorf("cannot open intermediate file %s: %v", intermediateFileName, err)  
+		}  
+		dec := json.NewDecoder(file)  
+		for {  
+			var kv KeyValue  
+			if err := dec.Decode(&kv); err != nil {  
+				if err.Error() == "EOF" {  
+					break  
+				}  
+				return fmt.Errorf("error decoding intermediate file %s: %v", intermediateFileName, err)  
+			}  
+			intermediate = append(intermediate, kv)  
+		}  
+		defer file.Close() // 确保在每次读取文件后关闭文件  
+	}  
+	// 按键排序  
+	sort.Slice(intermediate, func(i, j int) bool {  
+		return intermediate[i].Key < intermediate[j].Key  
+	})  
+	// 创建输出文件  
+	outputFileName := fmt.Sprintf("mr-out-%d", reduceID)  
+	ofile, err := os.Create(outputFileName)  
+	if err != nil {  
+		return fmt.Errorf("cannot create output file %s: %v", outputFileName, err)  
+	}  
+	defer ofile.Close()  
+	// Reduce阶段，按键合并相同的键，并调用用户定义的Reduce函数  
+	i := 0  
+	for i < len(intermediate) {  
+		j := i + 1  
+		// 找出所有具有相同键的值  
+		for j < len(intermediate) && intermediate[j].Key == intermediate[i].Key {  
+			j++  
+		}  
+		values := []string{}  
+		for k := i; k < j; k++ {  
+			values = append(values, intermediate[k].Value)  
+		}   
+		// 调用用户提供的Reduce函数处理值  
+		output := reducef(intermediate[i].Key, values)  
+		// 按指定格式输出结果  
+		fmt.Fprintf(ofile, "%v %v\n", intermediate[i].Key, output)  
+		i = j  
+	}  
+	return nil  
+}  
 
 ## 2.2执行概述
 ![Alt text](../blogImg/执行概述.PNG)
@@ -134,92 +134,92 @@ Map阶段：在Map阶段，输入数据被分成多个小片段（称为分片�
 reduce worker遍历所有的中间数据，将每个唯一的中间数据传给用户定义的reduce函数。
 ## 2.3Master Data Structures
 Master结构体的定义举例：
->type Master struct {
-	files            []string                      // 输入文件列表
-	nReduce          int                           // reduce 任务数量
-	mapTasks         int                           // map 任务数量
-	reduceTasks      int                           // reduce 任务数量
-	taskStatus       map[int]string                // 任务状态
-	taskMutex        sync.Mutex                    // 互斥锁
-	done             bool                          // 任务是否完成
-	intermediateData map[int]map[string][]KeyValue // 中间数据
-	taskTimeout      map[int]time.Time             // 任务超时时间
-	timeout          time.Duration                 // 任务超时时间间隔
-}
+>type Master struct {  
+	files            []string                      // 输入文件列表  
+	nReduce          int                           // reduce 任务数量  
+	mapTasks         int                           // map 任务数量  
+	reduceTasks      int                           // reduce 任务数量  
+	taskStatus       map[int]string                // 任务状态  
+	taskMutex        sync.Mutex                    // 互斥锁  
+	done             bool                          // 任务是否完成  
+	intermediateData map[int]map[string][]KeyValue // 中间数据  
+	taskTimeout      map[int]time.Time             // 任务超时时间  
+	timeout          time.Duration                 // 任务超时时间间隔  
+}  
 
 ## 2.4分配任务
 下面是分配任务函数（GetTask）例子：
->func (m *Master) GetTask(args *TaskRequest, reply *TaskReply) error {
-	m.taskMutex.Lock()
-	defer m.taskMutex.Unlock()
-	// 检查是否所有任务都已完成
-	if m.done {
-		reply.TaskType = "" // 显式设置为空的任务类型以表示没有更多任务
-		return nil
-	}
-	now := time.Now()
-	taskAssigned := false
-	// 首先检查是否有所有 Map 任务完成
-	allMapCompleted := true
-	for i := 0; i < m.mapTasks; i++ {
-		status, ok := m.taskStatus[i]
-		if !ok || status != "completed" {
-			allMapCompleted = false
-			break
-		}
-	}
-	if !allMapCompleted {
-		// 分配 Map 任务
-		for i := 0; i < m.mapTasks; i++ {
-			status, ok := m.taskStatus[i]
-			if (!ok || status == "pending") || (status == "in-progress" && now.Sub(m.taskTimeout[i]) > m.timeout) {
-				reply.TaskType = string(Map)
-				reply.TaskID = i
-				reply.NMap = len(m.files)
-				reply.File = m.files[i]
-				reply.NReduce = m.nReduce
-				reply.Data = make(map[string][]KeyValue)
-				m.taskStatus[i] = "in-progress"
-				m.taskTimeout[i] = now
-				taskAssigned = true
-				break
-			}
-		}
-	} else {
-		// 如果所有 Map 任务完成，分配 Reduce 任务
-		for i := 0; i < m.reduceTasks; i++ {
-			status, ok := m.taskStatus[i+m.mapTasks]
-			if (!ok || status == "pending") || (status == "in-progress" && now.Sub(m.taskTimeout[i+m.mapTasks]) > m.timeout) {
-				reply.TaskType = string(Reduce)
-				reply.TaskID = i + m.mapTasks
-				reply.NMap = len(m.files)
-				reply.ReduceID = i
-				reply.NReduce = m.nReduce
-				reply.Data = make(map[string][]KeyValue)
-				m.taskStatus[i+m.mapTasks] = "in-progress"
-				m.taskTimeout[i+m.mapTasks] = now
-				taskAssigned = true
-				break
-			}
-		}
-	}
-	if taskAssigned {
-		return nil
-	}
-	// 如果没有可分配的任务，检查所有任务是否完成
-	allCompleted := true
-	for _, status := range m.taskStatus {
-		if status != "completed" {
-			allCompleted = false
-			break
-		}
-	}
-	if allCompleted {
-		m.done = true
-		reply.TaskType = "" // 没有更多任务时显式设置为空
-	}
-	return nil
-}
+>func (m *Master) GetTask(args *TaskRequest, reply *TaskReply) error {  
+	m.taskMutex.Lock()  
+	defer m.taskMutex.Unlock()  
+	// 检查是否所有任务都已完成  
+	if m.done {  
+		reply.TaskType = "" // 显式设置为空的任务类型以表示没有更多任务  
+		return nil  
+	}  
+	now := time.Now()  
+	taskAssigned := false  
+	// 首先检查是否有所有 Map 任务完成  
+	allMapCompleted := true  
+	for i := 0; i < m.mapTasks; i++ {  
+		status, ok := m.taskStatus[i]  
+		if !ok || status != "completed" {  
+			allMapCompleted = false  
+			break  
+		}  
+	}  
+	if !allMapCompleted {  
+		// 分配 Map 任务  
+		for i := 0; i < m.mapTasks; i++ {  
+			status, ok := m.taskStatus[i]  
+			if (!ok || status == "pending") || (status == "in-progress" && now.Sub(m.taskTimeout[i]) > m.timeout) {  
+				reply.TaskType = string(Map)  
+				reply.TaskID = i  
+				reply.NMap = len(m.files)  
+				reply.File = m.files[i]  
+				reply.NReduce = m.nReduce  
+				reply.Data = make(map[string][]KeyValue)  
+				m.taskStatus[i] = "in-progress"  
+				m.taskTimeout[i] = now  
+				taskAssigned = true  
+				break  
+			}  
+		}  
+	} else {  
+		// 如果所有 Map 任务完成，分配 Reduce 任务  
+		for i := 0; i < m.reduceTasks; i++ {  
+			status, ok := m.taskStatus[i+m.mapTasks]  
+			if (!ok || status == "pending") || (status == "in-progress" && now.Sub(m.taskTimeout[i+m.mapTasks]) > m.timeout) {  
+				reply.TaskType = string(Reduce)  
+				reply.TaskID = i + m.mapTasks  
+				reply.NMap = len(m.files)  
+				reply.ReduceID = i  
+				reply.NReduce = m.nReduce  
+				reply.Data = make(map[string][]KeyValue)  
+				m.taskStatus[i+m.mapTasks] = "in-progress"  
+				m.taskTimeout[i+m.mapTasks] = now  
+				taskAssigned = true  
+				break  
+			}  
+		}  
+	}  
+	if taskAssigned {  
+		return nil  
+	}  
+	// 如果没有可分配的任务，检查所有任务是否完成  
+	allCompleted := true  
+	for _, status := range m.taskStatus {  
+		if status != "completed" {  
+			allCompleted = false  
+			break  
+		}  
+	}  
+	if allCompleted {  
+		m.done = true  
+		reply.TaskType = "" // 没有更多任务时显式设置为空  
+	}  
+	return nil  
+}  
 
 # 3.高可用
 ## 3.1worker宕机
