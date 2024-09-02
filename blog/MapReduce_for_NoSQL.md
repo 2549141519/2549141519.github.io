@@ -58,8 +58,8 @@ func main() {
 	generateDataAndSaveToRedis(rdb, 10000)  
 }  
 
-执行命令：go run Generate_random_data.go
-![Alt text](../blogImg/MapReduce1.PNG)
+执行命令：go run Generate_random_data.go  
+![Alt text](../blogImg/MapReduce1.PNG)  
 
 ## 2.2 读取Redis数据到文件
 读取Redis数据到文件：
@@ -114,11 +114,11 @@ func main() {
 	writeDataToFile(data, "input.txt")  
 }  
 
-执行命令：go run Read_data.go
-![Alt text](../blogImg/MapReduce2.PNG)
+执行命令：go run Read_data.go  
+![Alt text](../blogImg/MapReduce2.PNG)  
 
-此时input.txt文件内容如下：
-![Alt text](../blogImg/MapReduce3.PNG)
+此时input.txt文件内容如下：  
+![Alt text](../blogImg/MapReduce3.PNG)  
 
 ## 2.3 MapReduce实现
 MapReduce实现：
@@ -187,8 +187,8 @@ func main() {
 	fmt.Println("MapReduce job completed. Results written to output.txt")  
 }  
 
-执行命令：go run MapReduce.go
-![Alt text](../blogImg/MapReduce4.PNG)
+执行命令：go run MapReduce.go  
+![Alt text](../blogImg/MapReduce4.PNG)  
 
-output.txt文件内容如下：
-![Alt text](../blogImg/MapReduce5.PNG)
+output.txt文件内容如下：  
+![Alt text](../blogImg/MapReduce5.PNG)  
