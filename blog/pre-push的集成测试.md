@@ -74,3 +74,39 @@ exit 0
 ![](../blogImg/IntegrationTesting3.PNG)  
 此时修改main.cpp文件，将`int n = 0;`注释掉，并再次执行`git push origin main`，此时会提示编译失败，并阻止提交：    
 ![](../blogImg/IntegrationTesting1.PNG)  
+
+# 3. 失败信息在pr中显示
+想要在pr中显示失败信息，需要先修改pre-push钩子脚本，在集成测试不通过的情况下依然可以git push成功。  
+在pre-push钩子脚本中，将`exit 1`改为`exit 0`，这样在集成测试不通过时，git push命令不会失败。  
+此时进入项目根目录，新建.github/workflows/ci.yml文件，并添加以下内容：  
+```
+name: C++ CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up C++ environment
+      run: sudo apt-get install g++
+
+    - name: Build C++ code
+      run: g++ -o main main.cpp
+
+    - name: Run the executable
+      run: ./main
+```
+
+git push origin main后，创建新的pr，在pr中会显示集成测试的失败信息：  
+![Alt text](../blogImg/test1.PNG)  
