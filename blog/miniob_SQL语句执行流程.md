@@ -4,7 +4,7 @@
 <div onclick="window.scrollTo({top:0,behavior:'smooth'});" style="background-color:white;position:fixed;bottom:20px;right:40px;padding:10px 10px 5px 10px;cursor:pointer;z-index:10;border-radius:13%;box-shadow:0.5px 3px 7px rgba(0,0,0,0.3);"><img src="https://2549141519.github.io/blogImg/backTop.png" alt="TOP" style="background-color:white;width:30px;"></div>
 
 # 1. SQL语句执行流程
-在 MiniOB 的实现中，没有明确区分逻辑算子和物理算子的概念，直接从 `Stmt` 对象生成 物理算子（`PhysicalOperator`） 来执行 SQL 查询。这种实现简化了逻辑分析和物理执行的分离，跳过了独立的逻辑算子生成阶段。  
+在MiniOB项目中，SQL语句的执行过程如下：   
 
 # 1.1 SQL解析
 当SQL语句被输入时，首先经过词法和语法分析器（如 Flex 和 Bison）解析成`SQLNode`。`SQLNode`是抽象语法树（AST）的组成部分，它表示SQL语句中的不同结构元素。  
