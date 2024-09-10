@@ -10,7 +10,7 @@ Bison分为[Linux版本](https://www.gnu.org/software/bison/)和[Windows版本](
 
 # 2. Bison工作原理
 
-# 2.1 Bison和Flex协同工作
+## 2.1 Bison和Flex协同工作
 
 Flex：词法分析器，将输入分割成一个个有意义的词块，称为记号（token）  
 Bison：语法分析器，根据给定的语法规则将Flex生成的tokens转换为抽象语法树（AST）  
@@ -23,7 +23,7 @@ Bison：语法分析器，根据给定的语法规则将Flex生成的tokens转�
 
 Bison的输入为`*.y`文件：  
 
-# 3.1定义段
+## 3.1定义段
 
 1. 以c语法写的一些定义和声明，该部分以符号`%{`和`%}`包裹。  
 2. 对词法的终结符和非终结符的声明，主要包含：`%token`,`%left`,`%right`,`%nonassoc`,`%union`,`%type`,`%start`。  
@@ -46,10 +46,10 @@ Bison的输入为`*.y`文件：
 
 `%start`定义语法分析的开始符号，开始符号必须具备一个空规则，为了让开始输入的记号能从起始符号开始匹配。   
 
-# 3.2 语法规则段
+## 3.2 语法规则段
 
 ![图片3](../blogImg/Bison3.PNG)  
 
-# 3.3 辅助函数段
+## 3.3 辅助函数段
 
 ![图片4](../blogImg/Bison4.PNG)  
