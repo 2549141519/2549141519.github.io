@@ -12,7 +12,7 @@ Bison分为[Linux版本](https://www.gnu.org/software/bison/)和[Windows版本](
 
 ## 2.1 Bison和Flex协同工作
 
-Flex：词法分析器，将输入分割成一个个有意义的词块，称为记号（token）  
+[Flex](Flex词法分析.md)：词法分析器，将输入分割成一个个有意义的词块，称为记号（token）  
 Bison：语法分析器，根据给定的语法规则将Flex生成的tokens转换为抽象语法树（AST）  
 编译顺序：  
 ![图片1](../blogImg/Bison1.PNG)  
