@@ -295,7 +295,7 @@ RC BplusTreeHandler::delete_entry(const char *user_key, const RID *rid)
 
 ### 2.2.3 查找操作
 `get_entry `方法用于查找指定的键值对，`find_leaf` 用于找到包含指定键值的叶子节点。  
-```
+```  
 RC BplusTreeHandler::get_entry(const char *user_key, int key_len, list<RID> &rids)
 {
   BplusTreeScanner scanner(*this);
@@ -327,6 +327,7 @@ RC BplusTreeHandler::find_leaf(BplusTreeMiniTransaction &mtr, BplusTreeOperation
   return find_leaf_internal(mtr, op, child_page_getter, frame);
 }
 ```  
+
 `get_entry `函数:  
 用于根据给定的` user_key `从B+树中找到对应的记录ID列表` rids`，它主要使用了一个[` BplusTreeScanner `](#25-b树的扫描)来扫描树中的符合条件的键。  
 初始化` BplusTreeScanner`：  
@@ -347,7 +348,7 @@ RC BplusTreeHandler::find_leaf(BplusTreeMiniTransaction &mtr, BplusTreeOperation
 
 ## 2.3 B+树的事务
 `BplusTreeMiniTransaction`：用于封装 MiniOB 中的 B+ 树事务。  
-```
+```  
 class BplusTreeMiniTransaction final
 {
 public:
