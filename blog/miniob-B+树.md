@@ -89,6 +89,7 @@ struct IndexFileHeader
   }
 };
 ```  
+
 `PageNum root_page`：  
 该变量存储了根节点在磁盘中的页号，用于指示B+树在文件系统中的存储位置。`BP_INVALID_PAGE_NUM` 表示一个无效的页号。  
 `int32_t internal_max_size`：  
@@ -197,6 +198,7 @@ RC BplusTreeHandler::insert_entry(const char *user_key, const RID *rid)
   return RC::SUCCESS;
 }
 ```  
+
 `const char *user_key`：  
 用户提供的键值，表示需要插入到B+树中的数据。  
 `const RID *rid`：  
@@ -274,6 +276,7 @@ RC BplusTreeHandler::delete_entry(const char *user_key, const RID *rid)
   return rc;
 }
 ```  
+
 `delete_entry`函数：B+树删除操作的入口。  
 内存分配并构造删除键：  
 首先从内存池 `mem_pool_item_` 分配一个指向 `key `的内存指针。如果分配失败，则记录警告日志并返回` RC::NOMEM `错误码。  
@@ -369,6 +372,7 @@ private:
   BplusTreeLogger   logger_;
 };
 ```  
+
 `BplusTreeMiniTransaction(BplusTreeHandler &tree_handler, RC *operation_result = nullptr)`：  
 构造函数，接收一个` BplusTreeHandler `对象作为参数，这个对象代表了对 B+ 树的具体操作管理。  
 参数 operation_result 是一个指向 `RC`（返回码）的指针。如果不为 `nullptr`，在事务结束时，会根据操作结果来决定是否提交或回滚。  
@@ -416,6 +420,7 @@ RC BplusTreeHandler::split(BplusTreeMiniTransaction &mtr, Frame *frame, Frame *&
   return RC::SUCCESS;
 }
 ```  
+
 分配新页：为新节点分配页框并加锁。  
 移动数据：将旧节点的一半数据移动到新节点。  
 更新元数据：确保新节点继承旧节点的父节点关系。  
@@ -471,6 +476,7 @@ RC BplusTreeHandler::coalesce(
   return coalesce_or_redistribute<InternalIndexNodeHandler>(mtr, parent_frame);
 }
 ```  
+
 确定左右节点：根据 `index` 来区分当前节点和相邻节点（左或右）。  
 删除父节点中的索引：移除父节点中与右节点对应的索引键。  
 合并左右节点：将右节点中的数据移动到左节点中，如果是叶子节点，更新其` next_page` 指针。  
@@ -586,6 +592,7 @@ private:
   bool                                 first_emitted_ = false;
 };
 ```  
+
 初始化扫描器：  
 创建 `BplusTreeScanner `对象并调用` open `函数，设置扫描的范围（左边界和右边界）。  
 获取记录：  
@@ -622,6 +629,7 @@ bool BplusTreeHandler::validate_tree()
   return true;
 }
 ```  
+
 结构验证：  
 `validate_tree `通过递归检查每个节点的结构（`validate_node_recursive`）和叶子节点的链表链接（`validate_leaf_link`），确保B+树的各个部分符合规范。  
 调试工具：  
