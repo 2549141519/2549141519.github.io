@@ -122,7 +122,8 @@ struct IndexNode
 ### 2.1.3 `LeafIndexNode`
 `LeafIndexNode`：  
 叶子节点的结构，存储实际的数据和指向下一个兄弟节点的指针。  
-```struct LeafIndexNode : public IndexNode
+```
+struct LeafIndexNode : public IndexNode
 {
   static constexpr int HEADER_SIZE = IndexNode::HEADER_SIZE + 4;
 
@@ -135,7 +136,8 @@ struct IndexNode
 ### 2.1.4 `InternalIndexNode`
 `InternalIndexNode`：  
 内部节点的结构，存储键值和子页面编号。  
-```struct InternalIndexNode : public IndexNode
+```
+struct InternalIndexNode : public IndexNode
 {
   static constexpr int HEADER_SIZE = IndexNode::HEADER_SIZE;
 
@@ -293,7 +295,8 @@ RC BplusTreeHandler::delete_entry(const char *user_key, const RID *rid)
 
 ### 2.2.3 查找操作
 `get_entry `方法用于查找指定的键值对，`find_leaf` 用于找到包含指定键值的叶子节点。  
-```RC BplusTreeHandler::get_entry(const char *user_key, int key_len, list<RID> &rids)
+```
+RC BplusTreeHandler::get_entry(const char *user_key, int key_len, list<RID> &rids)
 {
   BplusTreeScanner scanner(*this);
   RC rc = scanner.open(user_key, key_len, true /*left_inclusive*/, user_key, key_len, true /*right_inclusive*/);
@@ -344,7 +347,8 @@ RC BplusTreeHandler::find_leaf(BplusTreeMiniTransaction &mtr, BplusTreeOperation
 
 ## 2.3 B+树的事务
 `BplusTreeMiniTransaction`：用于封装 MiniOB 中的 B+ 树事务。  
-```class BplusTreeMiniTransaction final
+```
+class BplusTreeMiniTransaction final
 {
 public:
 
@@ -385,7 +389,8 @@ private:
 
 ### 2.4.1 分裂
 当节点满时，`split `方法将节点分裂成两个，并将中间的键插入到父节点。  
-```template <typename IndexNodeHandlerType>
+```
+template <typename IndexNodeHandlerType>
 RC BplusTreeHandler::split(BplusTreeMiniTransaction &mtr, Frame *frame, Frame *&new_frame)
 {
   IndexNodeHandlerType old_node(mtr, file_header_, frame);
@@ -417,7 +422,8 @@ RC BplusTreeHandler::split(BplusTreeMiniTransaction &mtr, Frame *frame, Frame *&
 
 ### 2.4.2 合并
 当删除导致节点中的元素过少时，`coalesce` 方法合并相邻节点。  
-```template <typename IndexNodeHandlerType>
+```
+template <typename IndexNodeHandlerType>
 RC BplusTreeHandler::coalesce(
     BplusTreeMiniTransaction &mtr, Frame *neighbor_frame, Frame *frame, Frame *parent_frame, int index)
 {
@@ -472,7 +478,8 @@ RC BplusTreeHandler::coalesce(
 
 ### 2.4.3 重新分配
 `redistribute `方法重新分配相邻节点中的元素以保持平衡。   
-```template <typename IndexNodeHandlerType>
+```
+template <typename IndexNodeHandlerType>
 RC BplusTreeHandler::redistribute(BplusTreeMiniTransaction &mtr, Frame *neighbor_frame, Frame *frame, Frame *parent_frame, int index)
 {
   InternalIndexNodeHandler parent_node(mtr, file_header_, parent_frame);
@@ -503,19 +510,19 @@ RC BplusTreeHandler::redistribute(BplusTreeMiniTransaction &mtr, Frame *neighbor
 
   return RC::SUCCESS;
 }
-```  
+```   
+
 初始化节点和检查节点大小：准备好相邻节点、当前节点和父节点，确保相邻节点有足够的元素可以借出。  
 根据相邻节点的位置重新分配元素：  
-```
-如果相邻节点在右侧，将右节点的第一个元素移动到当前节点的末尾，并更新父节点键值。
-如果相邻节点在左侧，将左节点的最后一个元素移动到当前节点的开头，并更新父节点键值。
-```  
+如果相邻节点在右侧，将右节点的第一个元素移动到当前节点的末尾，并更新父节点键值。  
+如果相邻节点在左侧，将左节点的最后一个元素移动到当前节点的开头，并更新父节点键值。  
 标记修改：标记所有被修改的节点页框，以便后续提交到磁盘。  
 返回结果：操作成功后返回 `RC::SUCCESS`。  
 
 ## 2.5 B+树的扫描
 `BplusTreeScanner `类允许对 B+ 树的范围扫描。可以设置左边界和右边界，扫描满足条件的键值对。  
-```class BplusTreeScanner
+```
+class BplusTreeScanner
 {
 public:
   BplusTreeScanner(BplusTreeHandler &tree_handler);
@@ -587,7 +594,8 @@ private:
 
 ## 2.6 B+树的验证
 通过 `validate_tree `方法可以检查 B+ 树的合法性，包括节点之间的链接、键值的顺序等。  
-```bool BplusTreeHandler::validate_tree()
+```
+bool BplusTreeHandler::validate_tree()
 {
   if (is_empty()) {
     return true;
